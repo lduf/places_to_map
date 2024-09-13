@@ -11,15 +11,23 @@ import base64
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+# Importation pour ajouter du HTML personnalisé
+from folium import Element
+
 st.title("Visualisation personnalisée sur la Carte de France")
 
-# 1. Chargement du fichier CSV
+# 1. Saisie du titre par l'utilisateur
+map_title = st.text_input("Entrez le titre de la carte :", "Ma Carte")
+
+# 2. Chargement du fichier CSV
 uploaded_file = st.file_uploader("Choisissez un fichier CSV", type="csv")
 
 if uploaded_file is not None:
     # Lecture du fichier CSV avec le bon séparateur et l'encodage
     try:
-        df = pd.read_csv(uploaded_file, sep=';', encoding='utf-8')
+        df = pd.read_csv(uploaded_file, sep=';', encoding='utf-8-sig')
+        # Afficher les colonnes pour débogage
+        st.write("Colonnes du DataFrame :", df.columns.tolist())
     except Exception as e:
         st.error(f"Erreur lors de la lecture du fichier CSV : {e}")
     else:
@@ -28,7 +36,7 @@ if uploaded_file is not None:
         if not required_columns.issubset(df.columns):
             st.error(f"Le fichier CSV doit contenir les colonnes : {', '.join(required_columns)}")
         else:
-            # 2. Géocodage des adresses
+            # 3. Géocodage des adresses
             geolocator = Nominatim(user_agent="my_geocoder")
 
             @st.cache_data
@@ -77,10 +85,27 @@ if uploaded_file is not None:
             show_labels = st.sidebar.checkbox("Afficher le nom du lieu sous le point (lors de l'export)", value=False)
             enable_fullscreen = st.sidebar.checkbox("Activer le mode plein écran", value=True)
 
+            # Option pour la taille des noms
+            font_size_option = st.sidebar.selectbox(
+                "Taille des noms affichés sur la carte",
+                options=["Petit", "Moyen", "Grand", "Très grand"],
+                index=1  # Par défaut, "Moyen"
+            )
+
+            # Mapper les options à des tailles en pixels
+            font_size_map = {
+                "Petit": 15,
+                "Moyen": 25,
+                "Grand": 35,
+                "Très grand": 50
+            }
+
+            font_size = font_size_map[font_size_option]
+
             # Filtrer le DataFrame en fonction des catégories sélectionnées
             filtered_df = df[df['catégorie'].isin(selected_categories)]
 
-            # 3. Création de la carte
+            # 4. Création de la carte
             tile_settings = map_tiles[selected_tile]
 
             tile_layer = None  # Initialiser tile_layer à None
@@ -146,7 +171,7 @@ if uploaded_file is not None:
                         html=f"""
                             <div style="text-align:center; white-space: nowrap;">
                                 <i class="fa fa-circle fa-2x" style="color:{color};"></i>
-                                <div style="font-size: 10px; color: {color};">{row['nom']}</div>
+                                <div style="font-size: {font_size}px; color: {color}; font-weight: bold;">{row['nom']}</div>
                             </div>
                         """
                     )
@@ -171,20 +196,20 @@ if uploaded_file is not None:
                     position: fixed;
                     bottom: 50px;
                     left: 50px;
-                    width: 150px;
+                    width: 300px;
                     height: auto;
                     z-index:9999;
-                    font-size:14px;
+                    font-size:30px;
                     background-color: white;
                     opacity: 0.8;
                     padding: 10px;
                     ">
-                    <h4>Légende</h4>
+                    <h2>Légende</h2>
                     <ul style="list-style: none; padding: 0; margin: 0;">"""
                 for category, color in color_map.items():
                     html += f"""
                         <li style="margin-bottom: 5px;">
-                            <span style="display: inline-block; width: 12px; height: 12px; background-color: {color}; margin-right: 5px; border-radius: 50%;"></span>
+                            <span style="display: inline-block; width: 25px; height: 25px; background-color: {color}; margin-right: 5px; border-radius: 50%;"></span>
                             {category}
                         </li>
                     """
@@ -199,9 +224,9 @@ if uploaded_file is not None:
 
             # **Option pour rendre le fond transparent lors de l'export en PNG**
             # Désactiver le fond transparent pour tous les fonds de carte
-            transparent_background = False
+            transparent_background = True
 
-            # 4. Affichage de la carte dans Streamlit
+            # 5. Affichage de la carte dans Streamlit
             st_data = st_folium(m, width=900, height=700)
 
             # **Boutons de téléchargement**
@@ -250,7 +275,7 @@ if uploaded_file is not None:
                                 html=f"""
                                     <div style="text-align:center; white-space: nowrap;">
                                         <i class="fa fa-circle fa-2x" style="color:{color};"></i>
-                                        <div style="font-size: 25px; color: {color}; font-weight: bold;">{row['nom']}</div>
+                                        <div style="font-size: {font_size}px; color: {color}; font-weight: bold;">{row['nom']}</div>
                                     </div>
                                 """
                             )
@@ -270,6 +295,14 @@ if uploaded_file is not None:
 
                     # Ajouter la légende
                     export_map.get_root().html.add_child(folium.Element(legend_html))
+
+                    # Ajouter le titre sur la carte exportée
+                    title_html = f'''
+                        <div style="position: fixed; top: 10px; width: 100%; text-align: center; z-index: 9999;">
+                            <h2 style="font-size:50px; background-color: white; display: inline-block; padding: 5px;">{map_title}</h2>
+                        </div>
+                        '''
+                    export_map.get_root().html.add_child(folium.Element(title_html))
 
                     # Configuration de Selenium
                     options = Options()
