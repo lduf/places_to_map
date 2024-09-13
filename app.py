@@ -59,7 +59,8 @@ if uploaded_file is not None:
             'OpenStreetMap': {'tiles': 'OpenStreetMap', 'attr': ''},
             'CartoDB positron': {'tiles': 'CartoDB positron', 'attr': ''},
             'France départements': {
-                'tiles': 'https://lduf.github.io/place_to_map/tiles/{z}/{x}/{y}.png',  # URL des tuiles hébergées sur GitHub Pages
+                # Remplacez par l'URL où vos tuiles sont hébergées sur GitHub Pages
+                'tiles': 'https://lduf.github.io/places_to_map/tiles/{z}/{x}/{y}.png',
                 'attr': 'Votre attribution ici'
             }
         }
@@ -79,15 +80,25 @@ if uploaded_file is not None:
         # 3. Création de la carte
         tile_settings = map_tiles[selected_tile]
 
+        # Initialiser la carte sans fond de carte
         m = folium.Map(
             location=[46.5, 2.5],
             zoom_start=6,
-            tiles=tile_settings['tiles'],
-            attr=tile_settings['attr'],
+            tiles=None,  # Pas de fond de carte initial
             control_scale=False,
             zoom_control=True,
             prefer_canvas=True,
         )
+
+        # Ajouter le fond de carte en tant que TileLayer séparé
+        if tile_settings['tiles'] is not None:
+            tile_layer = folium.TileLayer(
+                tiles=tile_settings['tiles'],
+                attr=tile_settings['attr'],
+                name="Fond de carte",
+                control=False
+            )
+            tile_layer.add_to(m)
 
         # **Ajustement de la vue pour inclure tous les points**
         if not filtered_df.empty:
@@ -169,9 +180,10 @@ if uploaded_file is not None:
 
         # **Option pour rendre le fond transparent lors de l'export en PNG**
         if selected_tile == 'France départements':
-            # Désactiver le fond de carte lors de l'export pour obtenir un fond transparent
+            # Garder le fond de carte personnalisé lors de l'export
             transparent_background = False
         else:
+            # Rendre le fond transparent lors de l'export
             transparent_background = True
 
         # 4. Affichage de la carte dans Streamlit
@@ -192,9 +204,8 @@ if uploaded_file is not None:
                     m.fit_bounds([sw, ne])
 
                 # **Désactiver le fond de carte lors de l'export pour un fond transparent**
-                original_tiles = m.tiles
-                if transparent_background:
-                    m.tiles = None
+                if transparent_background and 'tile_layer' in locals():
+                    m.remove_child(tile_layer)
 
                 # Configuration de Selenium
                 options = Options()
@@ -210,7 +221,8 @@ if uploaded_file is not None:
                 driver.quit()
 
                 # Rétablir le fond de carte original
-                m.tiles = original_tiles
+                if transparent_background and 'tile_layer' in locals():
+                    m.add_child(tile_layer)
 
                 # Téléchargement du PNG
                 st.download_button(
