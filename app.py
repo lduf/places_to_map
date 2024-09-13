@@ -18,7 +18,7 @@ uploaded_file = st.file_uploader("Choisissez un fichier CSV", type="csv")
 
 if uploaded_file is not None:
     # Lecture du fichier CSV
-    df = pd.read_csv(uploaded_file)
+    df = pd.read_csv(uploaded_file, sep=';')
 
     # Vérification des colonnes nécessaires
     required_columns = {'nom', 'adresse', 'catégorie'}
