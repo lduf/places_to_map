@@ -39,12 +39,14 @@ if uploaded_file is not None:
             # 3. Géocodage des adresses
             geolocator = Nominatim(user_agent="my_geocoder")
 
-            @st.cache_data
+            #@st.cache_data
             def geocode_address(address):
                 try:
                     location = geolocator.geocode(f"{address}, France")
+                    st.write(f"Géocodage réussi pour {address} : {location}")
                     return location.latitude, location.longitude
-                except:
+                except Exception as e:
+                    st.write(f"Erreur de géocodage pour {address} : {e}")
                     return None, None
 
             if 'latitude' not in df.columns or 'longitude' not in df.columns:
