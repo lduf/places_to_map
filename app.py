@@ -11,12 +11,7 @@ import base64
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-# Configuration des options pour Chrome
-options = Options()
-options.add_argument('--headless')  # Exécution en mode headless
-options.add_argument('--no-sandbox')  # Nécessaire pour certains environnements de serveurs
-options.add_argument('--disable-dev-shm-usage')  # Pour éviter des problèmes de mémoire partagée sur certains serveurs
-options.add_argument('--disable-gpu')  # Désactiver l'accélération matérielle
+
 
 
 # Importation pour ajouter du HTML personnalisé
@@ -314,12 +309,13 @@ if uploaded_file is not None:
                         '''
                     export_map.get_root().html.add_child(folium.Element(title_html))
 
-                    # Configuration de Selenium
+                    # Configuration des options pour Chrome
                     options = Options()
-                    options.add_argument("--headless")
-                    options.add_argument('--no-sandbox')
-                    options.add_argument('--disable-dev-shm-usage')
-
+                    options.add_argument('--headless')  # Exécution en mode headless
+                    options.add_argument('--no-sandbox')  # Nécessaire pour certains environnements de serveurs
+                    options.add_argument('--disable-dev-shm-usage')  # Pour éviter des problèmes de mémoire partagée sur certains serveurs
+                    options.add_argument('--disable-gpu')  # Désactiver l'accélération matérielle
+                    
                     # Initialisation du driver
                     driver = webdriver.Chrome(options=options)
 
