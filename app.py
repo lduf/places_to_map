@@ -11,9 +11,6 @@ import base64
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-
-
-
 # Importation pour ajouter du HTML personnalisé
 from folium import Element
 
@@ -55,6 +52,14 @@ if uploaded_file is not None:
             if 'latitude' not in df.columns or 'longitude' not in df.columns:
                 st.info("Géocodage des adresses, cela peut prendre quelques minutes...")
                 df[['latitude', 'longitude']] = df['adresse'].apply(lambda x: pd.Series(geocode_address(x)))
+                
+            # Permettre le téléchargement du fichier avec la latitude / longitude
+            st.download_button(
+                        label="Cliquez ici pour télécharger le csv avec la latitude / longitude",
+                        data=df,
+                        file_name='lat_long.csv',
+                        mime='data/csv'
+                    )
 
             # Suppression des adresses non géocodées
             df = df.dropna(subset=['latitude', 'longitude'])
