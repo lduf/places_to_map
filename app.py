@@ -57,7 +57,7 @@ if uploaded_file is not None:
             st.dataframe(df.head())
 
             # 4. Permettre le téléchargement du fichier avec la latitude / longitude
-            csv = df.to_csv(index=False).encode('utf-8')
+            csv = df.to_csv(index=False, sep=';').encode('utf-8')
             st.download_button(
                 label="Télécharger le fichier CSV avec latitude et longitude",
                 data=csv,
