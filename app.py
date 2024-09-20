@@ -11,6 +11,14 @@ import base64
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+# Configuration des options pour Chrome
+options = Options()
+options.add_argument('--headless')  # Exécution en mode headless
+options.add_argument('--no-sandbox')  # Nécessaire pour certains environnements de serveurs
+options.add_argument('--disable-dev-shm-usage')  # Pour éviter des problèmes de mémoire partagée sur certains serveurs
+options.add_argument('--disable-gpu')  # Désactiver l'accélération matérielle
+
+
 # Importation pour ajouter du HTML personnalisé
 from folium import Element
 
