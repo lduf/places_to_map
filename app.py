@@ -53,13 +53,17 @@ if uploaded_file is not None:
                 st.info("Géocodage des adresses, cela peut prendre quelques minutes...")
                 df[['latitude', 'longitude']] = df['adresse'].apply(lambda x: pd.Series(geocode_address(x)))
                 
-            # Permettre le téléchargement du fichier avec la latitude / longitude
+            # Afficher le DataFrame avec les coordonnées
+            st.dataframe(df.head())
+
+            # 4. Permettre le téléchargement du fichier avec la latitude / longitude
+            csv = df.to_csv(index=False).encode('utf-8')
             st.download_button(
-                        label="Cliquez ici pour télécharger le csv avec la latitude / longitude",
-                        data=df,
-                        file_name='lat_long.csv',
-                        mime='data/csv'
-                    )
+                label="Télécharger le fichier CSV avec latitude et longitude",
+                data=csv,
+                file_name='data_with_coordinates.csv',
+                mime='text/csv',
+            )
 
             # Suppression des adresses non géocodées
             df = df.dropna(subset=['latitude', 'longitude'])
